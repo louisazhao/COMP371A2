@@ -54,6 +54,9 @@ float fov=45.0f;//perspective angle
 bool leftMouseButton=false, middleMouseButton=false, rightMouseButton=false;//varibles for detecting the mouse button action
 bool firstMouse=true;
 
+//light
+glm::vec3 lightPos(0.0f,21.7f,0.0f);//20 unit above the horse
+
 
 // ---- VIEW MATRIX global variables -----
 glm::vec3 c_pos = glm::vec3(0.0f,0.0f, 30.0f); // camera position
@@ -372,57 +375,58 @@ int main() {
     ShaderProg groundShader("squarevs.vs","squarefs.fs");//shader program for ground
     horseShader=ShaderProg("horsevs.vs","horsefs.fs");//shader program for horse
     ShaderProg coordinateShader("squarevs.vs","squarefs.fs");//shader program for coordinate
+    ShaderProg lightShader("lightvs.vs","lightfs.fs");//light shader
     
     
     //vertices for a cube
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
         
-        -0.5f, -0.5f,  0.5f,
-        0.5f, -0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
         
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
         
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
         
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f,  0.5f,
-        0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
         
-        -0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
     
     
     //VAO
-    GLuint VAOs[3], VBOs[3];//two VAOs and VBOs, one for the ground, one for the horse
-    glGenVertexArrays(3,VAOs);
+    GLuint VAOs[4], VBOs[3];//four VAOs and VBOs, one for the ground, one for the horse
+    glGenVertexArrays(4,VAOs);
     glGenBuffers(3,VBOs);
     
     
@@ -443,10 +447,21 @@ int main() {
     
     
     //horse
+    //---------horse part--------------
     glBindVertexArray(VAOs[2]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[2]);
     glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    //---------normals-----------------
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    
+    //light
+    glBindVertexArray(VAOs[3]);
+    glBindBuffer(GL_ARRAY_BUFFER,VBOs[2]);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     
     
@@ -523,12 +538,28 @@ int main() {
             glDrawArrays(GL_LINES, 4, 2);
         }
         
+        //draw light
+        lightShader.use();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        model = glm::mat4();
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.3f)); // a smaller cube
+        lightShader.setMat4("model", model);
+        
+        glBindVertexArray(VAOs[3]);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         
         //draw horse
         glBindVertexArray(VAOs[2]);
         horseShader.use();
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
+        horseShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        horseShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+        horseShader.setVec3("lightPos", lightPos);
+        horseShader.setVec3("viewPos", c_pos);
         //--------------------------------------------------
 
         
@@ -563,7 +594,7 @@ void body()
     model_body=glm::rotate(model_body, glm::radians(userRotateOnZ), glm::vec3(0.0f,0.0f,1.0f));
     model_body=glm::rotate(model_body, glm::radians(userRotateOnY), glm::vec3(0.0f,1.0f,0.0f));
     horseShader.setMat4("model", model_body);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.2f,0.1f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.2f,0.1f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void frontLeftUpperLeg()
@@ -571,14 +602,14 @@ void frontLeftUpperLeg()
     model_flu = glm::translate(model_body, glm::vec3(-0.375f, -0.67f, -0.25f));
     model_flu = glm::scale(model_flu, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_flu);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void frontLeftLowerLeg()
 {
     glm::mat4 model_fll = glm::translate(model_flu, glm::vec3(0, -1, 0));
     horseShader.setMat4("model", model_fll);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void frontRightUpperLeg()
@@ -586,14 +617,14 @@ void frontRightUpperLeg()
     model_fru = glm::translate(model_body, glm::vec3(-0.375f, -0.67f, 0.25f));
     model_fru = glm::scale(model_fru, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_fru);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void frontRightLowerLeg()
 {
     glm::mat4 model_frl = glm::translate(model_fru, glm::vec3(0, -1, 0));
     horseShader.setMat4("model", model_frl);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void backLeftUpperLeg()
@@ -601,14 +632,14 @@ void backLeftUpperLeg()
     model_blu = glm::translate(model_body, glm::vec3(0.375f, -0.67f, -0.25f));
     model_blu = glm::scale(model_blu, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_blu);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void backLeftLowerLeg()
 {
     glm::mat4 model_bll = glm::translate(model_blu, glm::vec3(0, -1, 0));
     horseShader.setMat4("model",model_bll);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void backRightUpperLeg()
@@ -616,14 +647,14 @@ void backRightUpperLeg()
     model_bru=glm::translate(model_body, glm::vec3(0.375f, -0.67f, 0.25f));
     model_bru = glm::scale(model_bru, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_bru);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.4f,0.5f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void backRightLowerLeg()
 {
     glm::mat4 model_brl = glm::translate(model_bru, glm::vec3(0, -1, 0));
     horseShader.setMat4("model", model_brl);
-    horseShader.setVec4("partColor", glm::vec4(0.2f,0.6f,0.6f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void neck()
@@ -632,7 +663,7 @@ void neck()
     model_neck=glm::rotate(model_neck, glm::radians(-53.0f), glm::vec3(0.0, 0.0, 1.0));
     model_neck=glm::scale(model_neck,glm::vec3(0.96, 0.46, 0.5));
     horseShader.setMat4("model", model_neck);
-    horseShader.setVec4("partColor", glm::vec4(0.4f,0.2f,0.6f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.4f,0.2f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void head()
@@ -641,7 +672,7 @@ void head()
     model_head = glm::rotate(model_head, glm::radians(16.63f), glm::vec3(0.0, 0.0, 1.0));
     model_head = glm::scale(model_head, glm::vec3(0.34, 1.65, 0.5));
     horseShader.setMat4("model", model_head);
-    horseShader.setVec4("partColor", glm::vec4(0.4f,0.3f,0.3f,1.0f));
+    horseShader.setVec3("partColor", glm::vec3(0.4f,0.3f,0.3f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
