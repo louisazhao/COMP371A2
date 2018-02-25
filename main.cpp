@@ -10,6 +10,7 @@
 #include "ShaderProg.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <vector>
 
 
 
@@ -47,6 +48,21 @@ glm::mat4 model_blu;
 glm::mat4 model_base=glm::mat4(1.0f);
 ShaderProg horseShader;
 
+//horse joints
+//1. head_to_neck,
+//2. neck_to_torso,
+//3. torso_to_front_upper_right_leg,
+//4. front right_knee,
+//5. torso_to_hind_upper_right_leg,
+//6. hind_right_knee,
+//7. torso_to_front_upper_left_leg,
+//8. front_left_knee,
+//9. torso_to_hind_upper_left_leg,
+//10. hind_left_knee
+//----------------------
+float joints[10]={16.63,-53.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+
+ 
 //world rotation
 float worldrotationX=0.0f;
 float worldrotationY=0.0f;
@@ -107,22 +123,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if(key==GLFW_KEY_LEFT)//world orientation to right
     {
         worldrotationY+=worldRotateDegree;
-        //updateView();
     }
     if(key==GLFW_KEY_RIGHT)//world orientation to left
     {
         worldrotationY-=worldRotateDegree;
-        //updateView();
     }
     if (key == GLFW_KEY_DOWN)//world orientation Ry
     {
         worldrotationX-=worldRotateDegree;
-        //updateView();
     }
     if (key == GLFW_KEY_UP)//world orientation -Ry
     {
         worldrotationX+=worldRotateDegree;
-        //updateView();
     }
     if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
     {
@@ -142,8 +154,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         model=glm::mat4(1.0f);
         worldrotationY=0.0;
         worldrotationX=0.0;
+   joints[0]=16.63;joints[1]=-53.0;joints[2]=0.0;joints[3]=0.0;joints[4]=0.0;joints[5]=0.0;joints[6]=0.0;joints[7]=0.0;joints[8]=0.0;joints[9]=0.0;
         
-        //updateView();
     }
     if(key==GLFW_KEY_SPACE&& action == GLFW_PRESS)//randomly change the position of the horse on the grid
     {
@@ -231,6 +243,106 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         else
         {
             textureAct=false;
+        }
+    }
+    if(key==GLFW_KEY_0&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[0]+=5.0f;
+        }
+        else
+        {
+            joints[0]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_1&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[1]+=5.0f;
+        }
+        else
+        {
+            joints[1]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_2&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[2]+=5.0f;
+        }
+        else
+        {
+            joints[2]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_3&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[3]+=5.0f;
+        }
+        else
+        {
+            joints[3]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_4&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[4]+=5.0f;
+        }
+        else
+        {
+            joints[4]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_5&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[5]+=5.0f;
+        }
+        else
+        {
+            joints[5]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_6&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[6]+=5.0f;
+        }
+        else
+        {
+            joints[6]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_7&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[7]+=5.0f;
+        }
+        else
+        {
+            joints[7]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_8&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[8]+=5.0f;
+        }
+        else
+        {
+            joints[8]-=5.0f;
+        }
+    }
+    if(key==GLFW_KEY_9&&action==GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT) {
+            joints[9]+=5.0f;
+        }
+        else
+        {
+            joints[9]-=5.0f;
         }
     }
 }
@@ -406,47 +518,48 @@ int main() {
     
     //vertices for a cube
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        //position              normals            texture coordinate
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,0.0f, 0.0f,
         
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,0.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,0.0f, 0.0f,
         
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,1.0f, 0.0f,
         
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,1.0f, 0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,0.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,1.0f, 0.0f,
         
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,1.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,1.0f, 0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,0.0f, 1.0f,
         
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,0.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,1.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,0.0f, 1.0f
     };
     
     
@@ -479,17 +592,20 @@ int main() {
     glBindVertexArray(VAOs[2]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[2]);
     glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     //---------normals-----------------
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+    //---------texture coordinates----------
+    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6*sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
                           
     //light
     glBindVertexArray(VAOs[3]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[2]);
     glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     
     //grass texture
@@ -517,7 +633,33 @@ int main() {
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-                          
+    
+    
+    //horse texture
+    //-----------------------------
+    unsigned int horseTexture;
+    glGenTextures(1, &horseTexture);
+    glBindTexture(GL_TEXTURE_2D, horseTexture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );    // set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load image, create texture and generate mipmaps
+    //int width, height, nrChannels;
+    fileName="woodTex.jpg";
+    data = stbi_load(fileName.c_str(), &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
                           
     
     //game loop
@@ -565,11 +707,11 @@ int main() {
                 glDrawArrays(GL_TRIANGLES, 0, 6);
             }
         }
-         */
+        */
+        
         
         
         model=glm::mat4(1.0f);
-        //model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
         model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
         model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
         model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
@@ -631,8 +773,10 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         
+        
         //draw horse
         glBindVertexArray(VAOs[2]);
+        glBindTexture(GL_TEXTURE_2D, horseTexture);
         horseShader.use();
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
@@ -640,6 +784,7 @@ int main() {
         horseShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
         horseShader.setVec3("lightPos", lightPos);
         horseShader.setVec3("viewPos", c_pos);
+        groundShader.setBoolean("texOn", textureAct);
         //--------------------------------------------------
 
         
@@ -682,7 +827,8 @@ void body()
 }
 void frontLeftUpperLeg()
 {
-    model_flu = glm::translate(model_body, glm::vec3(-0.375f, -0.67f, -0.25f));
+    model_flu = glm::translate(model_body, glm::vec3(-0.375f, -0.67f, 0.25f));
+    model_flu=glm::rotate(model_flu, glm::radians(joints[6]), glm::vec3(0.0, 0.0, 1.0));
     model_flu = glm::scale(model_flu, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_flu);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -691,13 +837,15 @@ void frontLeftUpperLeg()
 void frontLeftLowerLeg()
 {
     glm::mat4 model_fll = glm::translate(model_flu, glm::vec3(0, -1, 0));
+    model_fll=glm::rotate(model_fll, glm::radians(joints[7]), glm::vec3(0.0, 0.0, 1.0));
     horseShader.setMat4("model", model_fll);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void frontRightUpperLeg()
 {
-    model_fru = glm::translate(model_body, glm::vec3(-0.375f, -0.67f, 0.25f));
+    model_fru = glm::translate(model_body, glm::vec3(-0.375f, -0.67f, -0.25f));
+    model_fru=glm::rotate(model_fru, glm::radians(joints[2]), glm::vec3(0.0, 0.0, 1.0));
     model_fru = glm::scale(model_fru, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_fru);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -706,13 +854,15 @@ void frontRightUpperLeg()
 void frontRightLowerLeg()
 {
     glm::mat4 model_frl = glm::translate(model_fru, glm::vec3(0, -1, 0));
+    model_frl=glm::rotate(model_frl, glm::radians(joints[3]), glm::vec3(0.0, 0.0, 1.0));
     horseShader.setMat4("model", model_frl);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void backLeftUpperLeg()
 {
-    model_blu = glm::translate(model_body, glm::vec3(0.375f, -0.67f, -0.25f));
+    model_blu = glm::translate(model_body, glm::vec3(0.375f, -0.67f, 0.25f));
+    model_blu=glm::rotate(model_blu, glm::radians(joints[8]), glm::vec3(0.0, 0.0, 1.0));
     model_blu = glm::scale(model_blu, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_blu);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -721,13 +871,15 @@ void backLeftUpperLeg()
 void backLeftLowerLeg()
 {
     glm::mat4 model_bll = glm::translate(model_blu, glm::vec3(0, -1, 0));
+    model_bll=glm::rotate(model_bll, glm::radians(joints[9]), glm::vec3(0.0, 0.0, 1.0));
     horseShader.setMat4("model",model_bll);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void backRightUpperLeg()
 {
-    model_bru=glm::translate(model_body, glm::vec3(0.375f, -0.67f, 0.25f));
+    model_bru=glm::translate(model_body, glm::vec3(0.375f, -0.67f, -0.25f));
+    model_bru=glm::rotate(model_bru, glm::radians(joints[4]), glm::vec3(0.0, 0.0, 1.0));
     model_bru = glm::scale(model_bru, glm::vec3(0.125f,0.67f , 0.25f));
     horseShader.setMat4("model", model_bru);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -736,6 +888,7 @@ void backRightUpperLeg()
 void backRightLowerLeg()
 {
     glm::mat4 model_brl = glm::translate(model_bru, glm::vec3(0, -1, 0));
+    model_brl=glm::rotate(model_brl, glm::radians(joints[5]), glm::vec3(0.0, 0.0, 1.0));
     horseShader.setMat4("model", model_brl);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -743,7 +896,7 @@ void backRightLowerLeg()
 void neck()
 {
     model_neck=glm::translate(model_body, glm::vec3(-0.6, 0.18, 0.0));
-    model_neck=glm::rotate(model_neck, glm::radians(-53.0f), glm::vec3(0.0, 0.0, 1.0));
+    model_neck=glm::rotate(model_neck, glm::radians(joints[1]), glm::vec3(0.0, 0.0, 1.0));
     model_neck=glm::scale(model_neck,glm::vec3(0.96, 0.46, 0.45));
     horseShader.setMat4("model", model_neck);
     horseShader.setVec3("partColor", glm::vec3(0.4f,0.2f,0.6f));
@@ -752,7 +905,7 @@ void neck()
 void head()
 {
     glm::mat4 model_head = glm::translate(model_neck, glm::vec3(-0.2, -0.5, 0.0));
-    model_head = glm::rotate(model_head, glm::radians(16.63f), glm::vec3(0.0, 0.0, 1.0));
+    model_head = glm::rotate(model_head, glm::radians(joints[0]), glm::vec3(0.0, 0.0, 1.0));
     model_head = glm::scale(model_head, glm::vec3(0.34, 1.65, 0.5));
     horseShader.setMat4("model", model_head);
     horseShader.setVec3("partColor", glm::vec3(0.4f,0.3f,0.3f));
