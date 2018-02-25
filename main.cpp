@@ -8,6 +8,8 @@
 
 #include <iostream>
 #include "ShaderProg.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 
@@ -35,7 +37,7 @@ float userRotateOnZ=0.0f;
 float cameraRotate=10.0f;
 
 //horse positions
-glm::vec3 bodyPosition=glm::vec3(0.0f,1.7f,0.0f);//body
+glm::vec3 bodyPosition=glm::vec3(0.0f,4.2f,0.0f);//body
 glm::mat4 model_body;
 glm::mat4 model_neck;
 glm::mat4 model_fru;
@@ -44,6 +46,11 @@ glm::mat4 model_bru;
 glm::mat4 model_blu;
 glm::mat4 model_base=glm::mat4(1.0f);
 ShaderProg horseShader;
+
+//world rotation
+float worldrotationX=0.0f;
+float worldrotationY=0.0f;
+const float worldRotateDegree=5.0f;
 
 //camera attributes
 float yaw=-90.0f;
@@ -57,9 +64,12 @@ bool firstMouse=true;
 //light
 glm::vec3 lightPos(0.0f,21.7f,0.0f);//20 unit above the horse
 
+//texture
+bool textureAct=false;
+
 
 // ---- VIEW MATRIX global variables -----
-glm::vec3 c_pos = glm::vec3(0.0f,0.0f, 30.0f); // camera position
+glm::vec3 c_pos = glm::vec3(0.0f,5.0f, 30.0f); // camera position
 glm::vec3 c_dir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f)); // camera direction
 glm::vec3 c_up = glm::vec3(0, 1, 0); // tell the camera which way is 'up'
 glm::mat4 view;
@@ -96,27 +106,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         glfwSetWindowShouldClose(window, GL_TRUE);
     if(key==GLFW_KEY_LEFT)//world orientation to right
     {
-        c_pos-=glm::normalize(glm::cross(c_dir, c_up));
+        worldrotationY+=worldRotateDegree;
         //updateView();
     }
     if(key==GLFW_KEY_RIGHT)//world orientation to left
     {
-        c_pos+=glm::normalize(glm::cross(c_dir, c_up));
+        worldrotationY-=worldRotateDegree;
         //updateView();
     }
     if (key == GLFW_KEY_DOWN)//world orientation Ry
     {
-        c_pos.y+=1;
+        worldrotationX-=worldRotateDegree;
         //updateView();
     }
     if (key == GLFW_KEY_UP)//world orientation -Ry
     {
-        c_pos.y-=1;
+        worldrotationX+=worldRotateDegree;
         //updateView();
     }
     if(key==GLFW_KEY_TAB)//reset to the initial world position and orientation.because I'm using Mac, which doesn't have "Home" button, I used "tab" instead
     {
-        c_pos = glm::vec3(0.0f,0.0f, 30.0f);
+        c_pos = glm::vec3(0.0f,5.0f, 30.0f);
         c_dir = glm::normalize(glm::vec3(0.0f, 0.0f, -1.0f));  // camera direction
         c_up = glm::vec3(0, 1, 0);
         yaw=-90.0f;
@@ -130,6 +140,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         userRotateOnY=0.0f;
         userRotateOnZ=0.0f;
         model=glm::mat4(1.0f);
+        worldrotationY=0.0;
+        worldrotationX=0.0;
         
         //updateView();
     }
@@ -209,6 +221,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);//wireframe mode
     }
+    
+    if(key==GLFW_KEY_X&&action==GLFW_PRESS)
+    {
+        if(textureAct==false)
+        {
+            textureAct=true;
+        }
+        else
+        {
+            textureAct=false;
+        }
+    }
 }
 
 //call back funtion for mouse button and movement
@@ -280,12 +304,12 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)//keep track of
     if(leftMouseButton)//zoom in and out by adjusting the fov degree
     {
         //cout<<"here"<<endl;
-        if(fov>=44.0f&&fov<=45.0f)
+        if(fov>=44.0f&&fov<=50.0f)
             fov-=yOffset*0.1;
         if(fov<=44.0f)
             fov=44.0f;
-        if(fov>=45.0f)
-            fov=45.0f;
+        if(fov>=50.0f)
+            fov=50.0f;
     }
     
     
@@ -351,10 +375,12 @@ int main() {
     //vertices for the ground square
     float square[]={
         
-        -0.5f,-0.5f,0.0f,//left bottom
-        0.5f,-0.5f,0.0f,//right bottom
-        0.5f,0.5f,0.0f,//right top
-        -0.5f,0.5f,0.0f,//left top
+        -0.5f,-0.5f,0.0f,0.0f,0.0f,//left bottom
+        0.5f,-0.5f,0.0f,1.0f,0.0f,//right bottom
+        -0.5f,0.5f,0.0f,0.0f,1.0f,//left top
+        -0.5f,0.5f,0.0f,0.0f,1.0f,//left top
+        0.5f,-0.5f,0.0f,1.0f,0.0f,//right bottom
+        0.5f,0.5f,0.0f,1.0f, 1.0f//right top
     };
     
     float coordinate[]={
@@ -374,7 +400,7 @@ int main() {
     
     ShaderProg groundShader("squarevs.vs","squarefs.fs");//shader program for ground
     horseShader=ShaderProg("horsevs.vs","horsefs.fs");//shader program for horse
-    ShaderProg coordinateShader("squarevs.vs","squarefs.fs");//shader program for coordinate
+    ShaderProg coordinateShader("coordinatevs.vs","coordinatefs.fs");//shader program for coordinate
     ShaderProg lightShader("lightvs.vs","lightfs.fs");//light shader
     
     
@@ -434,8 +460,10 @@ int main() {
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER,sizeof(square),square,GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
     
     
     //coordinates
@@ -456,7 +484,7 @@ int main() {
     //---------normals-----------------
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-    
+                          
     //light
     glBindVertexArray(VAOs[3]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[2]);
@@ -464,7 +492,33 @@ int main() {
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     
-    
+    //grass texture
+    //-------------------------
+    unsigned int grassTexture;
+    glGenTextures(1, &grassTexture);
+    glBindTexture(GL_TEXTURE_2D, grassTexture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );    // set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load image, create texture and generate mipmaps
+    int width, height, nrChannels;
+    string fileName="grass.jpg";
+    unsigned char *data = stbi_load(fileName.c_str(), &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+                          
+                          
     
     //game loop
     while(!glfwWindowShouldClose(window))
@@ -490,22 +544,40 @@ int main() {
         
         //draw ground
         glBindVertexArray(VAOs[0]);
+        glBindTexture(GL_TEXTURE_2D, grassTexture);
         groundShader.use();
         groundShader.setMat4("view", view);
         groundShader.setMat4("projection", projection);
+        /*
         for(int row=0;row<100;row++)
         {
             for(int column=0;column<100;column++)
             {
                 model=glm::mat4(1.0f);
+                model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+                model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
                 model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
                 model=glm::translate(model, glm::vec3(-49.5f+(float)column,-49.5f+(float)row,0.0f));
                 //we want the center of the grid at the world origin, therefore, the left bottom point should be at (-50,-50,0), consequently, the first offset is -50-(-0.5)=-49.5, same for the row
-                groundShader.setVec4("lineColor", 1.0f,1.0f,1.0f,1.0f);
+                //groundShader.setVec4("lineColor", 0.5f,0.5f,0.5f,1.0f);
+                groundShader.setBoolean("texOn", textureAct);
                 groundShader.setMat4("model", model);
-                glDrawArrays(GL_LINE_LOOP, 0, 4);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
             }
         }
+         */
+        
+        
+        model=glm::mat4(1.0f);
+        //model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
+        model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+        model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
+        model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
+        groundShader.setBoolean("texOn", textureAct);
+        groundShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+         
         
         
         //draw coordinates
@@ -517,6 +589,8 @@ int main() {
         {
             model=glm::mat4(1.0f);
             coordinateShader.setVec4("lineColor", 1.0, 0.0f, 0.0f, 1.0f);
+            model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+            model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
             model=glm::translate(model, glm::vec3(0.0f+(float)i,0.0f+0.02,0.0f));//give the transform a little offset on Y axis, so it wont be hiden from the grid
             coordinateShader.setMat4("model", model);
             glDrawArrays(GL_LINES, 0, 2);
@@ -525,6 +599,8 @@ int main() {
         {
             model=glm::mat4(1.0f);
             coordinateShader.setVec4("lineColor", 0.0, 1.0f, 0.0f, 1.0f);
+            model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+            model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
             model=glm::translate(model, glm::vec3(0.0f,0.0f+(float)i+0.02,0.0f));//give the transform a little offset on Y axis, so it wont be hiden from the grid
             coordinateShader.setMat4("model", model);
             glDrawArrays(GL_LINES, 2, 2);
@@ -533,6 +609,8 @@ int main() {
         {
             model=glm::mat4(1.0f);
             coordinateShader.setVec4("lineColor", 0.0, 0.0f, 1.0f, 1.0f);
+            model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+            model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
             model=glm::translate(model, glm::vec3(0.0f,0.0f+0.02,0.0f+(float)i));//give the transform a little offset on Y axis, so it wont be hiden from the grid
             coordinateShader.setMat4("model", model);
             glDrawArrays(GL_LINES, 4, 2);
@@ -543,6 +621,8 @@ int main() {
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
         model = glm::mat4();
+        model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+        model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.3f)); // a smaller cube
         lightShader.setMat4("model", model);
@@ -589,10 +669,13 @@ int main() {
 
 void body()
 {
-    model_body=glm::scale(model_base, glm::vec3(4.0f*userScale,1.5f*userScale,1.5f*userScale));
-    model_body=glm::translate(model_body, glm::vec3(bodyPosition[0]+moveOnX,bodyPosition[1],bodyPosition[2]+moveOnZ));
+    //model_body=glm::scale(model_base, glm::vec3(4.0f*userScale,1.5f*userScale,1.5f*userScale));
+    model_body=glm::translate(model_base, glm::vec3(bodyPosition[0]+moveOnX,bodyPosition[1],bodyPosition[2]+moveOnZ));
+    model_body=glm::scale(model_body, glm::vec3(4.0f*userScale,2.5f*userScale,1.0f*userScale));
     model_body=glm::rotate(model_body, glm::radians(userRotateOnZ), glm::vec3(0.0f,0.0f,1.0f));
     model_body=glm::rotate(model_body, glm::radians(userRotateOnY), glm::vec3(0.0f,1.0f,0.0f));
+    model_body=glm::rotate(model_body, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+    model_body=glm::rotate(model_body, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
     horseShader.setMat4("model", model_body);
     horseShader.setVec3("partColor", glm::vec3(0.2f,0.2f,0.1f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -661,7 +744,7 @@ void neck()
 {
     model_neck=glm::translate(model_body, glm::vec3(-0.6, 0.18, 0.0));
     model_neck=glm::rotate(model_neck, glm::radians(-53.0f), glm::vec3(0.0, 0.0, 1.0));
-    model_neck=glm::scale(model_neck,glm::vec3(0.96, 0.46, 0.5));
+    model_neck=glm::scale(model_neck,glm::vec3(0.96, 0.46, 0.45));
     horseShader.setMat4("model", model_neck);
     horseShader.setVec3("partColor", glm::vec3(0.4f,0.2f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
