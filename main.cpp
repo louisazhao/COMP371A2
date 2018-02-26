@@ -28,6 +28,7 @@
 using namespace std;
 
 unsigned int WIDTH=800, HEIGHT=800;
+GLFWwindow* window;
 float moveOnX=0,moveOnZ=0;
 const float minMove=-30.0f,maxMove=30.0f;
 float userScale=1.0f;
@@ -47,6 +48,7 @@ glm::mat4 model_bru;
 glm::mat4 model_blu;
 glm::mat4 model_base=glm::mat4(1.0f);
 ShaderProg horseShader;
+bool isWalking=false;
 
 //horse joints
 //1. head_to_neck,
@@ -104,6 +106,11 @@ void backRightUpperLeg();
 void backRightLowerLeg();
 void neck();
 void head();
+void walk();
+void step1();
+void step2();
+void step3();
+
 
 void window_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -155,6 +162,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         worldrotationY=0.0;
         worldrotationX=0.0;
    joints[0]=100.0;joints[1]=-53.0;joints[2]=0.0;joints[3]=0.0;joints[4]=0.0;joints[5]=0.0;joints[6]=0.0;joints[7]=0.0;joints[8]=0.0;joints[9]=0.0;
+        isWalking=false;
         
     }
     if(key==GLFW_KEY_SPACE&& action == GLFW_PRESS)//randomly change the position of the horse on the grid
@@ -345,6 +353,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             joints[9]-=5.0f;
         }
     }
+    if(key=GLFW_KEY_R&&action==GLFW_PRESS)
+    {
+        isWalking=true;
+        //walk();
+    }
 }
 
 //call back funtion for mouse button and movement
@@ -449,7 +462,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     
     //create a window
-    GLFWwindow *window=glfwCreateWindow(WIDTH,HEIGHT, "assignment1", nullptr, nullptr);
+    window=glfwCreateWindow(WIDTH,HEIGHT, "assignment1", nullptr, nullptr);
     if(!window)
     {
         cout<<"Failed to open a glfw window."<<endl;
@@ -482,6 +495,7 @@ int main() {
     
     //enable z-buffer
     glEnable(GL_DEPTH_TEST);
+    
     
     
     //vertices for the ground square
@@ -663,6 +677,7 @@ int main() {
                           
     
     //game loop
+    int walkStep=1;
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -787,6 +802,24 @@ int main() {
         groundShader.setBoolean("texOn", textureAct);
         //--------------------------------------------------
 
+        if(isWalking)
+        {
+            switch (walkStep) {
+                case 1:
+                    step1();
+                    break;
+                case 2:
+                    step2();
+                    break;
+                default:
+                    break;
+            }
+            walkStep++;
+        }
+        if(walkStep==3)
+        {
+            isWalking=false;
+        }
         
         body();
         model_body=glm::scale(model_body, glm::vec3(1.0f/4.0f,1.0f/2.5f,1.0f/1.0f));
@@ -803,8 +836,8 @@ int main() {
         backLeftLowerLeg();
         backRightUpperLeg();
         backRightLowerLeg();
-
         
+
         
         glfwSwapBuffers(window);
         //glfwPollEvents();
@@ -926,3 +959,28 @@ void head()
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
+
+
+void step1()
+{
+    joints[4]=-5.0;
+    joints[2]=-10.0;
+    joints[5]=-5.0;
+    joints[3]=-2.0;
+    joints[8]=-5.0;
+    joints[6]=-10.0;
+    joints[9]=-5.0;
+    joints[7]=-2.0;
+}
+
+void step2()
+{
+    joints[4]=5.0;
+    joints[2]=10.0;
+    joints[5]=5.0;
+    joints[3]=2.0;
+    joints[8]=5.0;
+    joints[6]=10.0;
+    joints[9]=5.0;
+    joints[7]=2.0;
+}
