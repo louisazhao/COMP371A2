@@ -1,6 +1,6 @@
 #version 330 core
 in vec2 texCoordinate;
-in vec4 FragPosLightSpace;
+//in vec4 FragPosLightSpace;
 in vec3 Normals;
 in vec3 FragPos;
 in vec3 LightPos;
@@ -9,7 +9,7 @@ out vec4 FragColor;
 
 uniform bool texOn;
 uniform sampler2D grassTex;
-uniform sampler2D shadowMap;
+//uniform sampler2D shadowMap;
 uniform vec3 lightColor;
 
 void main()

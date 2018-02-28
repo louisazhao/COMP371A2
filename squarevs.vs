@@ -6,12 +6,10 @@ layout(location=2) in vec2 aTexCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceMatrix;
 uniform vec3 lightPos;
 
 
 out vec2 texCoordinate;
-out vec4 FragPosLightSpace;
 out vec3 Normals;
 out vec3 FragPos;
 out vec3 LightPos;
@@ -23,6 +21,6 @@ void main()
     Normals=mat3(transpose(inverse(view*model)))*normals;
     LightPos=vec3(view*vec4(lightPos,1.0f));
     texCoordinate=vec2(aTexCoord.x,aTexCoord.y);
-    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+    //FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
 }
 

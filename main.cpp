@@ -501,12 +501,12 @@ int main() {
     //vertices for the ground square
     float square[]={
         
-        -0.5f,-0.5f,0.0f,0.0f,0.0f,//left bottom
-        0.5f,-0.5f,0.0f,1.0f,0.0f,//right bottom
-        -0.5f,0.5f,0.0f,0.0f,1.0f,//left top
-        -0.5f,0.5f,0.0f,0.0f,1.0f,//left top
-        0.5f,-0.5f,0.0f,1.0f,0.0f,//right bottom
-        0.5f,0.5f,0.0f,1.0f, 1.0f//right top
+        -0.5f,-0.5f,0.0f,0.0f,1.0f,0.0f,0.0f,0.0f,//left bottom
+        0.5f,-0.5f,0.0f,0.0f,1.0f,0.0f,1.0f,0.0f,//right bottom
+        -0.5f,0.5f,0.0f,0.0f,1.0f,0.0f,0.0f,1.0f,//left top
+        -0.5f,0.5f,0.0f,0.0f,1.0f,0.0f,0.0f,1.0f,//left top
+        0.5f,-0.5f,0.0f,0.0f,1.0f,0.0f,1.0f,0.0f,//right bottom
+        0.5f,0.5f,0.0f,0.0f,1.0f,0.0f,1.0f, 1.0f//right top
     };
     
     float coordinate[]={
@@ -587,10 +587,12 @@ int main() {
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER,sizeof(square),square,GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,5*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6*sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
     
     
     //coordinates
@@ -705,26 +707,11 @@ int main() {
         groundShader.use();
         groundShader.setMat4("view", view);
         groundShader.setMat4("projection", projection);
-        /*
-        for(int row=0;row<100;row++)
-        {
-            for(int column=0;column<100;column++)
-            {
-                model=glm::mat4(1.0f);
-                model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
-                model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
-                model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
-                model=glm::translate(model, glm::vec3(-49.5f+(float)column,-49.5f+(float)row,0.0f));
-                //we want the center of the grid at the world origin, therefore, the left bottom point should be at (-50,-50,0), consequently, the first offset is -50-(-0.5)=-49.5, same for the row
-                //groundShader.setVec4("lineColor", 0.5f,0.5f,0.5f,1.0f);
-                groundShader.setBoolean("texOn", textureAct);
-                groundShader.setMat4("model", model);
-                glDrawArrays(GL_TRIANGLES, 0, 6);
-            }
-        }
-        */
-        
-        
+        groundShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+        groundShader.setVec3("lightPos", lightPos);
+        groundShader.setVec3("viewPos", c_pos);
+        groundShader.setBoolean("texOn", textureAct);
+
         
         model=glm::mat4(1.0f);
         model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
@@ -795,13 +782,13 @@ int main() {
         horseShader.use();
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
-        horseShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         horseShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
         horseShader.setVec3("lightPos", lightPos);
         horseShader.setVec3("viewPos", c_pos);
         groundShader.setBoolean("texOn", textureAct);
         //--------------------------------------------------
 
+        /*
         if(isWalking)
         {
             switch (walkStep) {
@@ -820,6 +807,7 @@ int main() {
         {
             isWalking=false;
         }
+         */
         
         body();
         model_body=glm::scale(model_body, glm::vec3(1.0f/4.0f,1.0f/2.5f,1.0f/1.0f));
