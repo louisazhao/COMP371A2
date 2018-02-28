@@ -95,17 +95,17 @@ glm::mat4 projection;
 glm::mat4 model;
 
 //------------draw horse functions---------------
-void body();
-void frontLeftUpperLeg();
-void frontLeftLowerLeg();
-void frontRightUpperLeg();
-void frontRightLowerLeg();
-void backLeftUpperLeg();
-void backLeftLowerLeg();
-void backRightUpperLeg();
-void backRightLowerLeg();
-void neck();
-void head();
+void body(ShaderProg shader);
+void frontLeftUpperLeg(ShaderProg shader);
+void frontLeftLowerLeg(ShaderProg shader);
+void frontRightUpperLeg(ShaderProg shader);
+void frontRightLowerLeg(ShaderProg shader);
+void backLeftUpperLeg(ShaderProg shader);
+void backLeftLowerLeg(ShaderProg shader);
+void backRightUpperLeg(ShaderProg shader);
+void backRightLowerLeg(ShaderProg shader);
+void neck(ShaderProg shader);
+void head(ShaderProg shader);
 void walk();
 void step1();
 void step2();
@@ -676,7 +676,27 @@ int main() {
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-                          
+    
+    // configure depth map FBO
+    // -----------------------
+    const unsigned int SHADOW_WIDTH = 1600, SHADOW_HEIGHT = 1566;
+    unsigned int depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth texture
+    unsigned int depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
     //game loop
     int walkStep=1;
@@ -809,21 +829,21 @@ int main() {
         }
          */
         
-        body();
+        body(horseShader);
         model_body=glm::scale(model_body, glm::vec3(1.0f/4.0f,1.0f/2.5f,1.0f/1.0f));
     //eliminate the scaler on body model, since its not uniformly scaled. otherwise, rotation will have weird result
-        neck();
+        neck(horseShader);
         model_neck=glm::scale(model_neck,glm::vec3(1.0/2.5, 1.0/1.0, 1.0/0.5));
     //eliminate the scaler on neck model, since its not uniformly scaled. otherwise, rotation will have weird result
-        head();
-        frontLeftUpperLeg();
-        frontLeftLowerLeg();
-        frontRightUpperLeg();
-        frontRightLowerLeg();
-        backLeftUpperLeg();
-        backLeftLowerLeg();
-        backRightUpperLeg();
-        backRightLowerLeg();
+        head(horseShader);
+        frontLeftUpperLeg(horseShader);
+        frontLeftLowerLeg(horseShader);
+        frontRightUpperLeg(horseShader);
+        frontRightLowerLeg(horseShader);
+        backLeftUpperLeg(horseShader);
+        backLeftLowerLeg(horseShader);
+        backRightUpperLeg(horseShader);
+        backRightLowerLeg(horseShader);
         
 
         
@@ -838,7 +858,7 @@ int main() {
     return 0;
 }
 
-void body()
+void body(ShaderProg shader)
 {
     model_body=glm::translate(model_base, glm::vec3(bodyPosition[0]+moveOnX,bodyPosition[1],bodyPosition[2]+moveOnZ));
     model_body=glm::scale(model_body, glm::vec3(4.0f*userScale,2.5f*userScale,1.0f*userScale));
@@ -846,104 +866,104 @@ void body()
     model_body=glm::rotate(model_body, glm::radians(userRotateOnY), glm::vec3(0.0f,1.0f,0.0f));
     model_body=glm::rotate(model_body, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
     model_body=glm::rotate(model_body, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
-    horseShader.setMat4("model", model_body);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.2f,0.1f));
+    shader.setMat4("model", model_body);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.2f,0.1f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontLeftUpperLeg()
+void frontLeftUpperLeg(ShaderProg shader)
 {
     model_flu=glm::rotate(model_body, glm::radians(joints[6]), glm::vec3(0.0, 0.0, 1.0));
     model_flu = glm::translate(model_flu, glm::vec3(-0.9f, -1.5f, 0.25f));
     model_flu = glm::scale(model_flu, glm::vec3(0.5f,2.0f,0.15f));
-    horseShader.setMat4("model", model_flu);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
+    shader.setMat4("model", model_flu);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontLeftLowerLeg()
+void frontLeftLowerLeg(ShaderProg shader)
 {
     model_flu = glm::scale(model_flu, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     //eliminate the scaler on flu model, since its not uniformly scaled. otherwise, rotation will have weird result
     glm::mat4 model_fll=glm::rotate(model_flu, glm::radians(joints[7]), glm::vec3(0.0, 0.0, 1.0));
     model_fll = glm::translate(model_fll, glm::vec3(0, -1.4, 0));
     model_fll = glm::scale(model_fll, glm::vec3(0.5f,1.6f,0.15f));
-    horseShader.setMat4("model", model_fll);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
+    shader.setMat4("model", model_fll);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontRightUpperLeg()
+void frontRightUpperLeg(ShaderProg shader)
 {
     model_fru=glm::rotate(model_body, glm::radians(joints[2]), glm::vec3(0.0, 0.0, 1.0));
     model_fru = glm::translate(model_fru, glm::vec3(-0.9f, -1.5f, -0.25f));
     model_fru = glm::scale(model_fru, glm::vec3(0.5f,2.0f,0.15f));
-    horseShader.setMat4("model", model_fru);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
+    shader.setMat4("model", model_fru);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontRightLowerLeg()
+void frontRightLowerLeg(ShaderProg shader)
 {
     model_fru = glm::scale(model_fru, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     //eliminate the scaler on fru model, since its not uniformly scaled. otherwise, rotation will have weird result
     glm::mat4 model_frl=glm::rotate(model_fru, glm::radians(joints[3]), glm::vec3(0.0, 0.0, 1.0));
     model_frl = glm::translate(model_frl, glm::vec3(0, -1.4, 0));
     model_frl = glm::scale(model_frl, glm::vec3(0.5f,1.6f,0.15f));
-    horseShader.setMat4("model", model_frl);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
+    shader.setMat4("model", model_frl);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backLeftUpperLeg()
+void backLeftUpperLeg(ShaderProg shader)
 {
     model_blu=glm::rotate(model_body, glm::radians(joints[8]), glm::vec3(0.0, 0.0, 1.0));
     model_blu = glm::translate(model_blu, glm::vec3(0.9f, -1.5f, 0.25f));
     model_blu = glm::scale(model_blu, glm::vec3(0.5f,2.0f,0.15f));
-    horseShader.setMat4("model", model_blu);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
+    shader.setMat4("model", model_blu);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backLeftLowerLeg()
+void backLeftLowerLeg(ShaderProg shader)
 {
     model_blu = glm::scale(model_blu, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     glm::mat4 model_bll=glm::rotate(model_blu, glm::radians(joints[9]), glm::vec3(0.0, 0.0, 1.0));
     model_bll = glm::translate(model_bll, glm::vec3(0, -1.4, 0));
     model_bll= glm::scale(model_bll, glm::vec3(0.5f,1.6f,0.15f));
-    horseShader.setMat4("model",model_bll);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
+    shader.setMat4("model",model_bll);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backRightUpperLeg()
+void backRightUpperLeg(ShaderProg shader)
 {
     model_bru=glm::rotate(model_body, glm::radians(joints[4]), glm::vec3(0.0, 0.0, 1.0));
     model_bru=glm::translate(model_bru, glm::vec3(0.9f, -1.5f, -0.25f));
     model_bru = glm::scale(model_bru, glm::vec3(0.5f,2.0f,0.15f));
-    horseShader.setMat4("model", model_bru);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
+    shader.setMat4("model", model_bru);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backRightLowerLeg()
+void backRightLowerLeg(ShaderProg shader)
 {
     model_bru = glm::scale(model_bru, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     glm::mat4 model_brl=glm::rotate(model_bru, glm::radians(joints[5]), glm::vec3(0.0, 0.0, 1.0));
     model_brl = glm::translate(model_brl, glm::vec3(0, -1.4, 0));
     model_brl=glm::scale(model_brl, glm::vec3(0.5f,1.6f,0.15f));
-    horseShader.setMat4("model", model_brl);
-    horseShader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
+    shader.setMat4("model", model_brl);
+    shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void neck()
+void neck(ShaderProg shader)
 {
     model_neck=glm::rotate(model_body, glm::radians(joints[1]), glm::vec3(0.0, 0.0, 1.0));
     model_neck=glm::translate(model_neck, glm::vec3(-2.0, -1.0, 0.0));
     model_neck=glm::scale(model_neck,glm::vec3(2.5, 1.0, 0.5));
-    horseShader.setMat4("model", model_neck);
-    horseShader.setVec3("partColor", glm::vec3(0.4f,0.2f,0.6f));
+    shader.setMat4("model", model_neck);
+    shader.setVec3("partColor", glm::vec3(0.4f,0.2f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void head()
+void head(ShaderProg shader)
 {
     glm::mat4 model_head = glm::rotate(model_neck, glm::radians(joints[0]), glm::vec3(0.0, 0.0, 1.0));
     model_head = glm::translate(model_head, glm::vec3(-0.3, 1.0, 0.0));
     model_head = glm::scale(model_head, glm::vec3(1.5, 0.5, 0.5));
-    horseShader.setMat4("model", model_head);
-    horseShader.setVec3("partColor", glm::vec3(0.4f,0.3f,0.3f));
+    shader.setMat4("model", model_head);
+    shader.setVec3("partColor", glm::vec3(0.4f,0.3f,0.3f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
