@@ -10,6 +10,7 @@ out vec4 FragColor;
 uniform vec3 lightColor;
 uniform vec3 partColor;
 uniform sampler2D horseTex;
+uniform sampler2D shadowMap;
 uniform bool texOn;
 
 void main()

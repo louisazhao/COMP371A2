@@ -7,6 +7,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 lightPos;
+//uniform mat4 lightSpaceMatrix;
 
 
 out vec2 texCoordinate;

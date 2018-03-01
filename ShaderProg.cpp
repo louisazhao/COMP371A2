@@ -14,10 +14,6 @@
 #include <string>
 using namespace std;
 
-ShaderProg::ShaderProg()
-{
-    ID=0;
-}
 ShaderProg::ShaderProg(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
     string vertexCode, fragCode;

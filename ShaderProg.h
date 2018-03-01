@@ -24,7 +24,6 @@ class ShaderProg{
 public:
     unsigned int ID;
     
-    ShaderProg();
     ShaderProg(const GLchar* vertexShaderPath, const GLchar* fragmentShaderPath);
     void use();
     void setBoolean(const std::string &name, bool value)const;

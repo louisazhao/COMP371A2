@@ -47,7 +47,6 @@ glm::mat4 model_flu;
 glm::mat4 model_bru;
 glm::mat4 model_blu;
 glm::mat4 model_base=glm::mat4(1.0f);
-ShaderProg horseShader;
 bool isWalking=false;
 
 //horse joints
@@ -80,7 +79,7 @@ bool leftMouseButton=false, middleMouseButton=false, rightMouseButton=false;//va
 bool firstMouse=true;
 
 //light
-glm::vec3 lightPos(0.0f,21.7f,0.0f);//20 unit above the horse
+glm::vec3 lightPos(0.0f,20.0f,0.0f);//20 unit above the horse
 
 //texture
 bool textureAct=false;
@@ -95,6 +94,7 @@ glm::mat4 projection;
 glm::mat4 model;
 
 //------------draw horse functions---------------
+void drawHorse(ShaderProg shader);
 void body(ShaderProg shader);
 void frontLeftUpperLeg(ShaderProg shader);
 void frontLeftLowerLeg(ShaderProg shader);
@@ -525,9 +525,10 @@ int main() {
     };
     
     ShaderProg groundShader("squarevs.vs","squarefs.fs");//shader program for ground
-    horseShader=ShaderProg("horsevs.vs","horsefs.fs");//shader program for horse
+    ShaderProg horseShader("horsevs.vs","horsefs.fs");//shader program for horse
     ShaderProg coordinateShader("coordinatevs.vs","coordinatefs.fs");//shader program for coordinate
     ShaderProg lightShader("lightvs.vs","lightfs.fs");//light shader
+    ShaderProg simpleDepthShder("DepthMap.vs","DepthMap.fs");//depth map shader
     
     
     //vertices for a cube
@@ -698,6 +699,15 @@ int main() {
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     
+    // shader configuration
+    // --------------------
+    horseShader.use();
+    horseShader.setInt("horseTex", 0);
+    horseShader.setInt("shadowMap", 1);
+    groundShader.use();
+    groundShader.setInt("grassTex", 0);
+    groundShader.setInt("shadowMap", 1);
+    
     //game loop
     int walkStep=1;
     while(!glfwWindowShouldClose(window))
@@ -705,10 +715,51 @@ int main() {
         glfwPollEvents();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        
+        
+        //shadow part
+        //----------------------------------
+        // 1. render depth of scene to texture (from light's perspective)
+        // --------------------------------------------------------------
+        glm::mat4 lightProjection, lightView;
+        glm::mat4 lightSpaceMatrix;
+        float near_plane = 1.0f, far_plane = 7.5f;
+        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        lightSpaceMatrix = lightProjection * lightView;
+        // render scene from light's point of view
+        simpleDepthShder.use();
+        simpleDepthShder.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        
+        //ground
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, grassTexture);
+        model=glm::mat4(1.0f);
+        model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
+        model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
+        model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
+        simpleDepthShder.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        //horse
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, horseTexture);
+        drawHorse(simpleDepthShder);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         
-        
+        // reset viewport
+        int width_,height_;
+        glfwGetFramebufferSize(window, &width_, &height_);
+        glViewport(0, 0, width_, height_);
+        // 2. render scene as normal using the generated depth/shadow map
+        // --------------------------------------------------------------
         //view matrix
+        view=glm::mat4(1.0f);
         view=glm::lookAt(c_pos, c_pos+c_dir, c_up);
         
         
@@ -829,23 +880,7 @@ int main() {
         }
          */
         
-        body(horseShader);
-        model_body=glm::scale(model_body, glm::vec3(1.0f/4.0f,1.0f/2.5f,1.0f/1.0f));
-    //eliminate the scaler on body model, since its not uniformly scaled. otherwise, rotation will have weird result
-        neck(horseShader);
-        model_neck=glm::scale(model_neck,glm::vec3(1.0/2.5, 1.0/1.0, 1.0/0.5));
-    //eliminate the scaler on neck model, since its not uniformly scaled. otherwise, rotation will have weird result
-        head(horseShader);
-        frontLeftUpperLeg(horseShader);
-        frontLeftLowerLeg(horseShader);
-        frontRightUpperLeg(horseShader);
-        frontRightLowerLeg(horseShader);
-        backLeftUpperLeg(horseShader);
-        backLeftLowerLeg(horseShader);
-        backRightUpperLeg(horseShader);
-        backRightLowerLeg(horseShader);
-        
-
+        drawHorse(horseShader);
         
         glfwSwapBuffers(window);
         //glfwPollEvents();
@@ -856,6 +891,33 @@ int main() {
     
     glfwTerminate();
     return 0;
+}
+
+void drawHorse(ShaderProg shader)
+{
+    body(shader);
+    model_body=glm::scale(model_body, glm::vec3(1.0f/4.0f,1.0f/2.5f,1.0f/1.0f));
+    //eliminate the scaler on body model, since its not uniformly scaled. otherwise, rotation will have weird result
+    neck(shader);
+    model_neck=glm::scale(model_neck,glm::vec3(1.0/2.5, 1.0/1.0, 1.0/0.5));
+    //eliminate the scaler on neck model, since its not uniformly scaled. otherwise, rotation will have weird result
+    head(shader);
+    frontLeftUpperLeg(shader);
+    frontLeftLowerLeg(shader);
+    frontRightUpperLeg(shader);
+    frontRightLowerLeg(shader);
+    backLeftUpperLeg(shader);
+    backLeftLowerLeg(shader);
+    backRightUpperLeg(shader);
+    backRightLowerLeg(shader);
+    //reset
+    model_body=glm::mat4(1.0f);
+    model_neck=glm::mat4(1.0f);
+    model_fru=glm::mat4(1.0f);
+    model_flu=glm::mat4(1.0f);
+    model_bru=glm::mat4(1.0f);
+    model_blu=glm::mat4(1.0f);
+    
 }
 
 void body(ShaderProg shader)

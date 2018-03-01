@@ -9,7 +9,7 @@ out vec4 FragColor;
 
 uniform bool texOn;
 uniform sampler2D grassTex;
-//uniform sampler2D shadowMap;
+uniform sampler2D shadowMap;
 uniform vec3 lightColor;
 
 void main()
