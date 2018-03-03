@@ -84,6 +84,9 @@ glm::vec3 lightPos(0.0f,20.0f,0.0f);//20 unit above the horse
 //texture
 bool textureAct=false;
 
+//shadow
+bool shadowOn=false;
+
 
 // ---- VIEW MATRIX global variables -----
 glm::vec3 c_pos = glm::vec3(0.0f,5.0f, 30.0f); // camera position
@@ -251,6 +254,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         else
         {
             textureAct=false;
+        }
+    }
+    if(key==GLFW_KEY_B&&action==GLFW_PRESS)
+    {
+        if(shadowOn==false)
+        {
+            shadowOn=true;
+        }
+        else
+        {
+            shadowOn=false;
         }
     }
     if(key==GLFW_KEY_0&&action==GLFW_PRESS)
@@ -496,8 +510,17 @@ int main() {
     //enable z-buffer
     glEnable(GL_DEPTH_TEST);
     
-    
-    
+    float planeVertices[] = {
+        // positions            // normals         // texcoords
+        25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+        -25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+        
+        25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
+        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+        25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+    };
+
     //vertices for the ground square
     float square[]={
         
@@ -588,6 +611,7 @@ int main() {
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER,sizeof(square),square,GL_STATIC_DRAW);
+    //glBufferData(GL_ARRAY_BUFFER,sizeof(planeVertices),planeVertices,GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
@@ -736,6 +760,7 @@ int main() {
         glClear(GL_DEPTH_BUFFER_BIT);
         
         //ground
+        glBindVertexArray(VAOs[0]);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, grassTexture);
         model=glm::mat4(1.0f);
@@ -745,19 +770,25 @@ int main() {
         model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
         simpleDepthShder.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        
+        
         //horse
+        glBindVertexArray(VAOs[2]);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, horseTexture);
         drawHorse(simpleDepthShder);
+        
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        
+    
+        // 2. render scene as normal using the generated depth/shadow map
+        // --------------------------------------------------------------
         // reset viewport
         int width_,height_;
         glfwGetFramebufferSize(window, &width_, &height_);
         glViewport(0, 0, width_, height_);
-        // 2. render scene as normal using the generated depth/shadow map
-        // --------------------------------------------------------------
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        
         //view matrix
         view=glm::mat4(1.0f);
         view=glm::lookAt(c_pos, c_pos+c_dir, c_up);
@@ -774,14 +805,17 @@ int main() {
         
         //draw ground
         glBindVertexArray(VAOs[0]);
-        glBindTexture(GL_TEXTURE_2D, grassTexture);
         groundShader.use();
         groundShader.setMat4("view", view);
         groundShader.setMat4("projection", projection);
         groundShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
         groundShader.setVec3("lightPos", lightPos);
         groundShader.setVec3("viewPos", c_pos);
-        groundShader.setBoolean("texOn", textureAct);
+        groundShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, grassTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
 
         
         model=glm::mat4(1.0f);
@@ -790,6 +824,7 @@ int main() {
         model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
         model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
         groundShader.setBoolean("texOn", textureAct);
+        groundShader.setInt("shadowOn", shadowOn);
         groundShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
          
@@ -849,14 +884,19 @@ int main() {
         
         //draw horse
         glBindVertexArray(VAOs[2]);
-        glBindTexture(GL_TEXTURE_2D, horseTexture);
         horseShader.use();
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
         horseShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
         horseShader.setVec3("lightPos", lightPos);
         horseShader.setVec3("viewPos", c_pos);
-        groundShader.setBoolean("texOn", textureAct);
+        horseShader.setBoolean("texOn", textureAct);
+        horseShader.setInt("shadowOn", shadowOn);
+        horseShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, horseTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
         //--------------------------------------------------
 
         /*
@@ -883,10 +923,10 @@ int main() {
         drawHorse(horseShader);
         
         glfwSwapBuffers(window);
-        //glfwPollEvents();
+        
     }
     
-    glDeleteVertexArrays(3,VAOs);
+    glDeleteVertexArrays(4,VAOs);
     glDeleteBuffers(3,VBOs);
     
     glfwTerminate();
