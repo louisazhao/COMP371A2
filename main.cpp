@@ -47,21 +47,28 @@ glm::mat4 model_flu;
 glm::mat4 model_bru;
 glm::mat4 model_blu;
 glm::mat4 model_base=glm::mat4(1.0f);
-bool isWalking=false;
 
-//horse joints
-//1. head_to_neck,
-//2. neck_to_torso,
-//3. torso_to_front_upper_right_leg,
-//4. front right_knee,
-//5. torso_to_hind_upper_right_leg,
-//6. hind_right_knee,
-//7. torso_to_front_upper_left_leg,
-//8. front_left_knee,
-//9. torso_to_hind_upper_left_leg,
-//10. hind_left_knee
+
+enum
+{
+    head_to_neck=0,
+    neck_to_torso=1,
+    torso_to_front_upper_right_leg=2,
+    front_right_knee=3,
+    torso_to_hind_upper_right_leg=4,
+    hind_right_knee=5,
+    torso_to_front_upper_left_leg=6,
+    front_left_knee=7,
+    torso_to_hind_upper_left_leg=8,
+    hind_left_knee=9
+};
+
 //----------------------
 float joints[10]={100.0,-53.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+int walkStep=1;
+bool isWalking=false;
+int timeInterval=0;
+int speedDiv=11;
 
  
 //world rotation
@@ -110,9 +117,6 @@ void backRightLowerLeg(ShaderProg shader);
 void neck(ShaderProg shader);
 void head(ShaderProg shader);
 void walk();
-void step1();
-void step2();
-void step3();
 
 
 void window_size_callback(GLFWwindow* window, int width, int height)
@@ -129,7 +133,9 @@ void window_size_callback(GLFWwindow* window, int width, int height)
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
         glfwSetWindowShouldClose(window, GL_TRUE);
+    }
     if(key==GLFW_KEY_LEFT)//world orientation to right
     {
         worldrotationY+=worldRotateDegree;
@@ -164,7 +170,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         model=glm::mat4(1.0f);
         worldrotationY=0.0;
         worldrotationX=0.0;
-   joints[0]=100.0;joints[1]=-53.0;joints[2]=0.0;joints[3]=0.0;joints[4]=0.0;joints[5]=0.0;joints[6]=0.0;joints[7]=0.0;joints[8]=0.0;joints[9]=0.0;
+        joints[head_to_neck]=100.0;
+        joints[neck_to_torso]=-53.0;
+        joints[torso_to_front_upper_right_leg]=0.0;
+        joints[front_right_knee]=0.0;
+        joints[torso_to_hind_upper_right_leg]=0.0;
+        joints[hind_right_knee]=0.0;
+        joints[torso_to_front_upper_left_leg]=0.0;
+        joints[front_left_knee]=0.0;
+        joints[torso_to_hind_upper_left_leg]=0.0;
+        joints[hind_left_knee]=0.0;
         isWalking=false;
         
     }
@@ -367,11 +382,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             joints[9]-=5.0f;
         }
     }
-    if(key=GLFW_KEY_R&&action==GLFW_PRESS)
+    
+    if(key==GLFW_KEY_R&&action==GLFW_PRESS)
     {
-        isWalking=true;
-        //walk();
+        if(isWalking) // stop
+        {
+            isWalking = false;
+        }
+        else
+        {
+            isWalking = true;
+        }
     }
+    
+    
+    
 }
 
 //call back funtion for mouse button and movement
@@ -507,7 +532,7 @@ int main() {
         return EXIT_FAILURE;
     }
     
-    //enable z-buffer
+    //enable z-bufferr
     glEnable(GL_DEPTH_TEST);
     
     float planeVertices[] = {
@@ -899,26 +924,6 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, depthMap);
         //--------------------------------------------------
 
-        /*
-        if(isWalking)
-        {
-            switch (walkStep) {
-                case 1:
-                    step1();
-                    break;
-                case 2:
-                    step2();
-                    break;
-                default:
-                    break;
-            }
-            walkStep++;
-        }
-        if(walkStep==3)
-        {
-            isWalking=false;
-        }
-         */
         
         drawHorse(horseShader);
         
@@ -935,6 +940,17 @@ int main() {
 
 void drawHorse(ShaderProg shader)
 {
+    if(isWalking)
+    {
+        walk();
+        ++timeInterval;
+        timeInterval %= (speedDiv+1);
+        walkStep += (timeInterval / speedDiv);
+        if(walkStep > 5)
+        {
+            walkStep = 1;
+        }
+    }
     body(shader);
     model_body=glm::scale(model_body, glm::vec3(1.0f/4.0f,1.0f/2.5f,1.0f/1.0f));
     //eliminate the scaler on body model, since its not uniformly scaled. otherwise, rotation will have weird result
@@ -974,8 +990,8 @@ void body(ShaderProg shader)
 }
 void frontLeftUpperLeg(ShaderProg shader)
 {
-    model_flu=glm::rotate(model_body, glm::radians(joints[6]), glm::vec3(0.0, 0.0, 1.0));
-    model_flu = glm::translate(model_flu, glm::vec3(-0.9f, -1.5f, 0.25f));
+    model_flu=glm::rotate(model_body, glm::radians(joints[torso_to_front_upper_left_leg]), glm::vec3(0.0, 0.0, 1.0));
+    model_flu = glm::translate(model_flu, glm::vec3(-1.4f, -2.0f, 0.25f));
     model_flu = glm::scale(model_flu, glm::vec3(0.5f,2.0f,0.15f));
     shader.setMat4("model", model_flu);
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -985,7 +1001,7 @@ void frontLeftLowerLeg(ShaderProg shader)
 {
     model_flu = glm::scale(model_flu, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     //eliminate the scaler on flu model, since its not uniformly scaled. otherwise, rotation will have weird result
-    glm::mat4 model_fll=glm::rotate(model_flu, glm::radians(joints[7]), glm::vec3(0.0, 0.0, 1.0));
+    glm::mat4 model_fll=glm::rotate(model_flu, glm::radians(joints[front_left_knee]), glm::vec3(0.0, 0.0, 1.0));
     model_fll = glm::translate(model_fll, glm::vec3(0, -1.4, 0));
     model_fll = glm::scale(model_fll, glm::vec3(0.5f,1.6f,0.15f));
     shader.setMat4("model", model_fll);
@@ -994,8 +1010,8 @@ void frontLeftLowerLeg(ShaderProg shader)
 }
 void frontRightUpperLeg(ShaderProg shader)
 {
-    model_fru=glm::rotate(model_body, glm::radians(joints[2]), glm::vec3(0.0, 0.0, 1.0));
-    model_fru = glm::translate(model_fru, glm::vec3(-0.9f, -1.5f, -0.25f));
+    model_fru=glm::rotate(model_body, glm::radians(joints[torso_to_front_upper_right_leg]), glm::vec3(0.0, 0.0, 1.0));
+    model_fru = glm::translate(model_fru, glm::vec3(-1.4f, -2.0f, -0.25f));
     model_fru = glm::scale(model_fru, glm::vec3(0.5f,2.0f,0.15f));
     shader.setMat4("model", model_fru);
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -1005,7 +1021,7 @@ void frontRightLowerLeg(ShaderProg shader)
 {
     model_fru = glm::scale(model_fru, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     //eliminate the scaler on fru model, since its not uniformly scaled. otherwise, rotation will have weird result
-    glm::mat4 model_frl=glm::rotate(model_fru, glm::radians(joints[3]), glm::vec3(0.0, 0.0, 1.0));
+    glm::mat4 model_frl=glm::rotate(model_fru, glm::radians(joints[front_right_knee]), glm::vec3(0.0, 0.0, 1.0));
     model_frl = glm::translate(model_frl, glm::vec3(0, -1.4, 0));
     model_frl = glm::scale(model_frl, glm::vec3(0.5f,1.6f,0.15f));
     shader.setMat4("model", model_frl);
@@ -1014,8 +1030,8 @@ void frontRightLowerLeg(ShaderProg shader)
 }
 void backLeftUpperLeg(ShaderProg shader)
 {
-    model_blu=glm::rotate(model_body, glm::radians(joints[8]), glm::vec3(0.0, 0.0, 1.0));
-    model_blu = glm::translate(model_blu, glm::vec3(0.9f, -1.5f, 0.25f));
+    model_blu=glm::rotate(model_body, glm::radians(joints[torso_to_hind_upper_left_leg]), glm::vec3(0.0, 0.0, 1.0));
+    model_blu = glm::translate(model_blu, glm::vec3(1.4f, -2.0f, 0.25f));
     model_blu = glm::scale(model_blu, glm::vec3(0.5f,2.0f,0.15f));
     shader.setMat4("model", model_blu);
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -1024,7 +1040,7 @@ void backLeftUpperLeg(ShaderProg shader)
 void backLeftLowerLeg(ShaderProg shader)
 {
     model_blu = glm::scale(model_blu, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
-    glm::mat4 model_bll=glm::rotate(model_blu, glm::radians(joints[9]), glm::vec3(0.0, 0.0, 1.0));
+    glm::mat4 model_bll=glm::rotate(model_blu, glm::radians(joints[hind_left_knee]), glm::vec3(0.0, 0.0, 1.0));
     model_bll = glm::translate(model_bll, glm::vec3(0, -1.4, 0));
     model_bll= glm::scale(model_bll, glm::vec3(0.5f,1.6f,0.15f));
     shader.setMat4("model",model_bll);
@@ -1033,8 +1049,8 @@ void backLeftLowerLeg(ShaderProg shader)
 }
 void backRightUpperLeg(ShaderProg shader)
 {
-    model_bru=glm::rotate(model_body, glm::radians(joints[4]), glm::vec3(0.0, 0.0, 1.0));
-    model_bru=glm::translate(model_bru, glm::vec3(0.9f, -1.5f, -0.25f));
+    model_bru=glm::rotate(model_body, glm::radians(joints[torso_to_hind_upper_right_leg]), glm::vec3(0.0, 0.0, 1.0));
+    model_bru=glm::translate(model_bru, glm::vec3(1.4f, -2.0f, -0.25f));
     model_bru = glm::scale(model_bru, glm::vec3(0.5f,2.0f,0.15f));
     shader.setMat4("model", model_bru);
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
@@ -1043,7 +1059,7 @@ void backRightUpperLeg(ShaderProg shader)
 void backRightLowerLeg(ShaderProg shader)
 {
     model_bru = glm::scale(model_bru, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
-    glm::mat4 model_brl=glm::rotate(model_bru, glm::radians(joints[5]), glm::vec3(0.0, 0.0, 1.0));
+    glm::mat4 model_brl=glm::rotate(model_bru, glm::radians(joints[hind_right_knee]), glm::vec3(0.0, 0.0, 1.0));
     model_brl = glm::translate(model_brl, glm::vec3(0, -1.4, 0));
     model_brl=glm::scale(model_brl, glm::vec3(0.5f,1.6f,0.15f));
     shader.setMat4("model", model_brl);
@@ -1052,7 +1068,7 @@ void backRightLowerLeg(ShaderProg shader)
 }
 void neck(ShaderProg shader)
 {
-    model_neck=glm::rotate(model_body, glm::radians(joints[1]), glm::vec3(0.0, 0.0, 1.0));
+    model_neck=glm::rotate(model_body, glm::radians(joints[neck_to_torso]), glm::vec3(0.0, 0.0, 1.0));
     model_neck=glm::translate(model_neck, glm::vec3(-2.0, -1.0, 0.0));
     model_neck=glm::scale(model_neck,glm::vec3(2.5, 1.0, 0.5));
     shader.setMat4("model", model_neck);
@@ -1061,7 +1077,7 @@ void neck(ShaderProg shader)
 }
 void head(ShaderProg shader)
 {
-    glm::mat4 model_head = glm::rotate(model_neck, glm::radians(joints[0]), glm::vec3(0.0, 0.0, 1.0));
+    glm::mat4 model_head = glm::rotate(model_neck, glm::radians(joints[head_to_neck]), glm::vec3(0.0, 0.0, 1.0));
     model_head = glm::translate(model_head, glm::vec3(-0.3, 1.0, 0.0));
     model_head = glm::scale(model_head, glm::vec3(1.5, 0.5, 0.5));
     shader.setMat4("model", model_head);
@@ -1069,28 +1085,69 @@ void head(ShaderProg shader)
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-
-
-void step1()
+void walk()
 {
-    joints[4]=-5.0;
-    joints[2]=-10.0;
-    joints[5]=-5.0;
-    joints[3]=-2.0;
-    joints[8]=-5.0;
-    joints[6]=-10.0;
-    joints[9]=-5.0;
-    joints[7]=-2.0;
+    switch (walkStep) {
+        case 1:
+        joints[neck_to_torso]=-43;
+        joints[torso_to_front_upper_left_leg]=0;
+        joints[front_left_knee]=0;
+        joints[torso_to_front_upper_right_leg]=-20;
+        joints[front_right_knee]=10;
+        joints[torso_to_hind_upper_left_leg]=15;
+        joints[hind_left_knee]=-10;
+        joints[torso_to_hind_upper_right_leg]=-15;
+        joints[hind_right_knee]=10;
+        break;
+            
+        case 2:
+        joints[neck_to_torso]=-48;
+        joints[torso_to_front_upper_left_leg]=-10;
+        joints[front_left_knee]=5;
+        joints[torso_to_front_upper_right_leg]=-10;
+        joints[front_right_knee]=5;
+        joints[torso_to_hind_upper_left_leg]=0;
+        joints[hind_left_knee]=0;
+        joints[torso_to_hind_upper_right_leg]=0;
+        joints[hind_right_knee]=0;
+        
+        
+        case 3:
+        joints[neck_to_torso]=-53;
+        joints[torso_to_front_upper_left_leg]=-20;
+        joints[front_left_knee]=10;
+        joints[torso_to_front_upper_right_leg]=0;
+        joints[front_right_knee]=0;
+        joints[torso_to_hind_upper_left_leg]=-15;
+        joints[hind_left_knee]=10;
+        joints[torso_to_hind_upper_right_leg]=15;
+        joints[hind_right_knee]=-10;
+        break;
+        
+        case 4:
+        joints[neck_to_torso]=-48;
+        joints[torso_to_front_upper_left_leg]=-10;
+        joints[front_left_knee]=5;
+        joints[torso_to_front_upper_right_leg]=-10;
+        joints[front_right_knee]=5;
+        joints[torso_to_hind_upper_left_leg]=0;
+        joints[hind_left_knee]=0;
+        joints[torso_to_hind_upper_right_leg]=0;
+        joints[hind_right_knee]=0;
+        break;
+            
+        case 5:
+        joints[neck_to_torso]=-43;
+        joints[torso_to_front_upper_left_leg]=0;
+        joints[front_left_knee]=0;
+        joints[torso_to_front_upper_right_leg]=-20;
+        joints[front_right_knee]=10;
+        joints[torso_to_hind_upper_left_leg]=15;
+        joints[hind_left_knee]=-10;
+        joints[torso_to_hind_upper_right_leg]=-15;
+        joints[hind_right_knee]=10;
+        break;
+        
+    }
 }
 
-void step2()
-{
-    joints[4]=5.0;
-    joints[2]=10.0;
-    joints[5]=5.0;
-    joints[3]=2.0;
-    joints[8]=5.0;
-    joints[6]=10.0;
-    joints[9]=5.0;
-    joints[7]=2.0;
-}
