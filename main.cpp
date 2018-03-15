@@ -86,7 +86,7 @@ bool leftMouseButton=false, middleMouseButton=false, rightMouseButton=false;//va
 bool firstMouse=true;
 
 //light
-glm::vec3 lightPos(0.0f,20.0f,0.0f);//20 unit above the horse
+glm::vec3 lightPos=glm::vec3(-0.5f,24.2f,-0.5f);//20 unit above the horse
 
 //texture
 bool textureAct=false;
@@ -104,18 +104,18 @@ glm::mat4 projection;
 glm::mat4 model;
 
 //------------draw horse functions---------------
-void drawHorse(ShaderProg shader);
-void body(ShaderProg shader);
-void frontLeftUpperLeg(ShaderProg shader);
-void frontLeftLowerLeg(ShaderProg shader);
-void frontRightUpperLeg(ShaderProg shader);
-void frontRightLowerLeg(ShaderProg shader);
-void backLeftUpperLeg(ShaderProg shader);
-void backLeftLowerLeg(ShaderProg shader);
-void backRightUpperLeg(ShaderProg shader);
-void backRightLowerLeg(ShaderProg shader);
-void neck(ShaderProg shader);
-void head(ShaderProg shader);
+void drawHorse(const ShaderProg &shader);
+void body(const ShaderProg &shader);
+void frontLeftUpperLeg(const ShaderProg &shader);
+void frontLeftLowerLeg(const ShaderProg &shader);
+void frontRightUpperLeg(const ShaderProg &shader);
+void frontRightLowerLeg(const ShaderProg &shader);
+void backLeftUpperLeg(const ShaderProg &shader);
+void backLeftLowerLeg(const ShaderProg &shader);
+void backRightUpperLeg(const ShaderProg &shader);
+void backRightLowerLeg(const ShaderProg &shader);
+void neck(const ShaderProg &shader);
+void head(const ShaderProg &shader);
 void run();
 
 
@@ -395,8 +395,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         }
     }
     
-    
-    
 }
 
 //call back funtion for mouse button and movement
@@ -537,13 +535,13 @@ int main() {
     
     float planeVertices[] = {
         // positions            // normals         // texcoords
-        25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
+        50.0f, -0.1f,  50.0f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f,
+        -50.0f, -0.1f,  50.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -50.0f, -0.1f, -50.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
         
-        25.0f, -0.5f,  25.0f,  0.0f, 1.0f, 0.0f,  25.0f,  0.0f,
-        -25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,   0.0f, 25.0f,
-        25.0f, -0.5f, -25.0f,  0.0f, 1.0f, 0.0f,  25.0f, 25.0f
+        50.0f, -0.1f,  50.0f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f,
+        -50.0f, -0.1f, -50.0f,  0.0f, 1.0f, 0.0f,   0.0f,1.0f,
+        50.0f, -0.1f, -50.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
     };
 
     //vertices for the ground square
@@ -635,14 +633,15 @@ int main() {
     //ground
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER,VBOs[0]);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(square),square,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(planeVertices),planeVertices,GL_STATIC_DRAW);
     //glBufferData(GL_ARRAY_BUFFER,sizeof(planeVertices),planeVertices,GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6*sizeof(GLfloat)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6*sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
     
     
     //coordinates
@@ -651,6 +650,7 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER,sizeof(coordinate),coordinate,GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
     
     
     //horse
@@ -664,8 +664,9 @@ int main() {
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
     //---------texture coordinates----------
-    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6*sizeof(GLfloat)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)(6*sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
                           
     //light
     glBindVertexArray(VAOs[3]);
@@ -673,6 +674,7 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(GLfloat),(GLvoid*)0);
     glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
     
     //grass texture
     //-------------------------
@@ -751,14 +753,15 @@ int main() {
     // shader configuration
     // --------------------
     horseShader.use();
-    horseShader.setInt("horseTex", 0);
+    horseShader.setInt("diffuseTexture", 0);
     horseShader.setInt("shadowMap", 1);
+
     groundShader.use();
     groundShader.setInt("grassTex", 0);
     groundShader.setInt("shadowMap", 1);
     
+    
     //game loop
-    int runStep=1;
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -772,7 +775,7 @@ int main() {
         // --------------------------------------------------------------
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
-        float near_plane = 1.0f, far_plane = 7.5f;
+        float near_plane = -20.0f, far_plane = 500.0f;
         lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
         lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         lightSpaceMatrix = lightProjection * lightView;
@@ -789,12 +792,9 @@ int main() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, grassTexture);
         model=glm::mat4(1.0f);
-        model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
-        model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
-        model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
-        model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
         simpleDepthShder.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         
         //horse
@@ -805,12 +805,15 @@ int main() {
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    
-        // 2. render scene as normal using the generated depth/shadow map
-        // --------------------------------------------------------------
         // reset viewport
         int width_,height_;
         glfwGetFramebufferSize(window, &width_, &height_);
+        glViewport(0, 0, width_, height_);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        
+    
+        // 2. render scene as normal using the generated depth/shadow map
+        // --------------------------------------------------------------
         glViewport(0, 0, width_, height_);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         
@@ -834,7 +837,7 @@ int main() {
         groundShader.setMat4("view", view);
         groundShader.setMat4("projection", projection);
         groundShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
-        groundShader.setVec3("lightPos", lightPos);
+        groundShader.setVec3("LightPos", lightPos);
         groundShader.setVec3("viewPos", c_pos);
         groundShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
         glActiveTexture(GL_TEXTURE0);
@@ -846,8 +849,6 @@ int main() {
         model=glm::mat4(1.0f);
         model=glm::rotate(model, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
         model=glm::rotate(model, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
-        model=glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
-        model=glm::scale(model, glm::vec3(100.0f,100.0f,1.0f));
         groundShader.setBoolean("texOn", textureAct);
         groundShader.setInt("shadowOn", shadowOn);
         groundShader.setMat4("model", model);
@@ -913,7 +914,7 @@ int main() {
         horseShader.setMat4("view", view);
         horseShader.setMat4("projection", projection);
         horseShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
-        horseShader.setVec3("lightPos", lightPos);
+        horseShader.setVec3("LightPos", lightPos);
         horseShader.setVec3("viewPos", c_pos);
         horseShader.setBoolean("texOn", textureAct);
         horseShader.setInt("shadowOn", shadowOn);
@@ -938,7 +939,7 @@ int main() {
     return 0;
 }
 
-void drawHorse(ShaderProg shader)
+void drawHorse(const ShaderProg &shader)
 {
     if(isRunning)
     {
@@ -976,7 +977,7 @@ void drawHorse(ShaderProg shader)
     
 }
 
-void body(ShaderProg shader)
+void body(const ShaderProg &shader)
 {
     model_body=glm::translate(model_base, glm::vec3(bodyPosition[0]+moveOnX,bodyPosition[1],bodyPosition[2]+moveOnZ));
     model_body=glm::scale(model_body, glm::vec3(4.0f*userScale,2.5f*userScale,1.0f*userScale));
@@ -988,7 +989,7 @@ void body(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.2f,0.1f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontLeftUpperLeg(ShaderProg shader)
+void frontLeftUpperLeg(const ShaderProg &shader)
 {
     model_flu=glm::translate(model_body, glm::vec3(-1.4f, -1.0f, 0.25f));
     model_flu=glm::rotate(model_flu, glm::radians(joints[torso_to_front_upper_left_leg]), glm::vec3(0.0, 0.0, 1.0));
@@ -999,7 +1000,7 @@ void frontLeftUpperLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontLeftLowerLeg(ShaderProg shader)
+void frontLeftLowerLeg(const ShaderProg &shader)
 {
     model_flu = glm::scale(model_flu, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     //eliminate the scaler on flu model, since its not uniformly scaled. otherwise, rotation will have weird result
@@ -1011,7 +1012,7 @@ void frontLeftLowerLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontRightUpperLeg(ShaderProg shader)
+void frontRightUpperLeg(const ShaderProg &shader)
 {
     model_fru=glm::translate(model_body, glm::vec3(-1.4f, -1.0f, -0.25f));
     model_fru=glm::rotate(model_fru, glm::radians(joints[torso_to_front_upper_right_leg]), glm::vec3(0.0, 0.0, 1.0));
@@ -1021,7 +1022,7 @@ void frontRightUpperLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void frontRightLowerLeg(ShaderProg shader)
+void frontRightLowerLeg(const ShaderProg &shader)
 {
     model_fru = glm::scale(model_fru, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     //eliminate the scaler on fru model, since its not uniformly scaled. otherwise, rotation will have weird result
@@ -1033,7 +1034,7 @@ void frontRightLowerLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backLeftUpperLeg(ShaderProg shader)
+void backLeftUpperLeg(const ShaderProg &shader)
 {
     model_blu=glm::translate(model_body, glm::vec3(1.4f, -1.0f, 0.25f));
     model_blu=glm::rotate(model_blu, glm::radians(joints[torso_to_hind_upper_left_leg]), glm::vec3(0.0, 0.0, 1.0));
@@ -1043,7 +1044,7 @@ void backLeftUpperLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backLeftLowerLeg(ShaderProg shader)
+void backLeftLowerLeg(const ShaderProg &shader)
 {
     model_blu = glm::scale(model_blu, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     glm::mat4 model_bll=glm::translate(model_blu, glm::vec3(0, -0.7, 0));
@@ -1054,7 +1055,7 @@ void backLeftLowerLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backRightUpperLeg(ShaderProg shader)
+void backRightUpperLeg(const ShaderProg &shader)
 {
     model_bru=glm::translate(model_body, glm::vec3(1.4f, -1.0f, -0.25f));
     model_bru=glm::rotate(model_bru, glm::radians(joints[torso_to_hind_upper_right_leg]), glm::vec3(0.0, 0.0, 1.0));
@@ -1064,7 +1065,7 @@ void backRightUpperLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.4f,0.5f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void backRightLowerLeg(ShaderProg shader)
+void backRightLowerLeg(const ShaderProg &shader)
 {
     model_bru = glm::scale(model_bru, glm::vec3(1.0/0.5f,1.0/2.0f,1.0/0.15f));
     glm::mat4 model_brl=glm::translate(model_bru, glm::vec3(0, -0.7, 0));
@@ -1075,7 +1076,7 @@ void backRightLowerLeg(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.2f,0.6f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void neck(ShaderProg shader)
+void neck(const ShaderProg &shader)
 {
     model_neck=glm::translate(model_body, glm::vec3(-1.5, 0.0, 0.0));
     model_neck=glm::rotate(model_neck, glm::radians(joints[neck_to_torso]), glm::vec3(0.0, 0.0, 1.0));
@@ -1085,7 +1086,7 @@ void neck(ShaderProg shader)
     shader.setVec3("partColor", glm::vec3(0.4f,0.2f,0.6f));
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
-void head(ShaderProg shader)
+void head(const ShaderProg &shader)
 {
     glm::mat4 model_head=glm::translate(model_neck, glm::vec3(0.0, 0.2, 0.0));
     model_head = glm::rotate(model_head, glm::radians(joints[head_to_neck]), glm::vec3(0.0, 0.0, 1.0));

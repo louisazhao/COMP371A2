@@ -9,20 +9,26 @@ uniform mat4 projection;
 //uniform vec3 lightPos;
 uniform mat4 lightSpaceMatrix;
 
+out VS_OUT{
+    vec3 FragPos;
+    vec3 Normals;
+    vec2 texCoordinate;
+    vec4 FragPosLightSpace;
+}vs_out;
 
-out vec2 texCoordinate;
-out vec3 Normals;
-out vec3 FragPos;
+//out vec2 texCoordinate;
+//out vec3 Normals;
+//out vec3 FragPos;
 //out vec3 LightPos;
-out vec4 FragPosLightSpace;
+//out vec4 FragPosLightSpace;
 
 void main()
 {
     gl_Position=projection*view*model*vec4(aPos,1.0);
-    FragPos=vec3(model * vec4(aPos, 1.0));
-    Normals=transpose(inverse(mat3(model)))*normals;
+    vs_out.FragPos=vec3(model * vec4(aPos, 1.0));
+    vs_out.Normals=transpose(inverse(mat3(model)))*normals;
     //LightPos=vec3(view*vec4(lightPos,1.0f));
-    texCoordinate=vec2(aTexCoord.x,aTexCoord.y);
-    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+    vs_out.texCoordinate=aTexCoord;
+    vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
 }
 
