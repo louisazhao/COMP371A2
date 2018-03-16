@@ -34,6 +34,7 @@ const float minMove=-30.0f,maxMove=30.0f;
 float userScale=1.0f;
 float userRotateOnY=0.0f;
 float userRotateOnZ=0.0f;
+float userRotateOnX=0.0f;
 //glm::vec3 rotateOri1=glm::vec3(0.0f,1.0f,0.0f);
 //glm::vec3 rotateOri2=glm::vec3(0.0f,0.0f,1.0f);
 float cameraRotate=10.0f;
@@ -167,6 +168,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         userScale=1.0f;
         userRotateOnY=0.0f;
         userRotateOnZ=0.0f;
+        userRotateOnX=0.0f;
         model=glm::mat4(1.0f);
         worldrotationY=0.0;
         worldrotationX=0.0;
@@ -394,7 +396,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             isRunning = true;
         }
     }
-    
+    if(key==GLFW_KEY_N&&action==GLFW_PRESS)//debuging rotation on X
+    {
+        userRotateOnX+=5.0f;
+    }
+    if(key==GLFW_KEY_M&&action==GLFW_PRESS)//debuging rotation on X
+    {
+        userRotateOnX-=5.0f;
+    }
 }
 
 //call back funtion for mouse button and movement
@@ -983,6 +992,7 @@ void body(const ShaderProg &shader)
     model_body=glm::scale(model_body, glm::vec3(4.0f*userScale,2.5f*userScale,1.0f*userScale));
     model_body=glm::rotate(model_body, glm::radians(userRotateOnZ), glm::vec3(0.0f,0.0f,1.0f));
     model_body=glm::rotate(model_body, glm::radians(userRotateOnY), glm::vec3(0.0f,1.0f,0.0f));
+    model_body=glm::rotate(model_body, glm::radians(userRotateOnX), glm::vec3(1.0f,0.0f,0.0f));
     model_body=glm::rotate(model_body, glm::radians(worldrotationX), glm::vec3(1.0,0.0,0.0));
     model_body=glm::rotate(model_body, glm::radians(worldrotationY), glm::vec3(0.0,1.0,0.0));
     shader.setMat4("model", model_body);
@@ -1100,31 +1110,44 @@ void head(const ShaderProg &shader)
 void run()
 {
     switch (runStep) {
+            
         case 1:
-        joints[neck_to_torso]=-39;
-        joints[torso_to_front_upper_left_leg]=10;
-        joints[front_left_knee]=0;
-        joints[torso_to_front_upper_right_leg]=-20;
-        joints[front_right_knee]=-5;
-        joints[torso_to_hind_upper_left_leg]=65;
-        joints[hind_left_knee]=-15;
-        joints[torso_to_hind_upper_right_leg]=55;
-        joints[hind_right_knee]=-5;
+        joints[neck_to_torso]=-43;
+        joints[torso_to_front_upper_left_leg]=0;
+        joints[front_left_knee]=90;
+        joints[torso_to_front_upper_right_leg]=5;
+        joints[front_right_knee]=0;
+        joints[torso_to_hind_upper_left_leg]=60;
+        joints[hind_left_knee]=-70;
+        joints[torso_to_hind_upper_right_leg]=60;
+        joints[hind_right_knee]=-60;
         break;
             
         case 2:
-        joints[neck_to_torso]=-40;
-        joints[torso_to_front_upper_left_leg]=-10;
-        joints[front_left_knee]=5;
-        joints[torso_to_front_upper_right_leg]=-40;
-        joints[front_right_knee]=-5;
-        joints[torso_to_hind_upper_left_leg]=45;
-        joints[hind_left_knee]=-5;
-        joints[torso_to_hind_upper_right_leg]=25;
-        joints[hind_right_knee]=-5;
-        
-        
+        joints[neck_to_torso]=-43;
+        joints[torso_to_front_upper_left_leg]=-15;
+        joints[front_left_knee]=70;
+        joints[torso_to_front_upper_right_leg]=20;
+        joints[front_right_knee]=95;
+        joints[torso_to_hind_upper_left_leg]=25;
+        joints[hind_left_knee]=-55;
+        joints[torso_to_hind_upper_right_leg]=-10;
+        joints[hind_right_knee]=-90;
+        break;
+            
         case 3:
+        joints[neck_to_torso]=-42;
+        joints[torso_to_front_upper_left_leg]=-75;
+        joints[front_left_knee]=35;
+        joints[torso_to_front_upper_right_leg]=-30;
+        joints[front_right_knee]=75;
+        joints[torso_to_hind_upper_left_leg]=-5;
+        joints[hind_left_knee]=-5;
+        joints[torso_to_hind_upper_right_leg]=-15;
+        joints[hind_right_knee]=-25;
+        break;
+            
+        case 4:
         joints[neck_to_torso]=-41;
         joints[torso_to_front_upper_left_leg]=-40;
         joints[front_left_knee]=0;
@@ -1136,42 +1159,29 @@ void run()
         joints[hind_right_knee]=-30;
         break;
         
-        case 4:
-        joints[neck_to_torso]=-42;
-        joints[torso_to_front_upper_left_leg]=-75;
-        joints[front_left_knee]=35;
-        joints[torso_to_front_upper_right_leg]=-30;
-        joints[front_right_knee]=75;
-        joints[torso_to_hind_upper_left_leg]=-5;
-        joints[hind_left_knee]=-5;
-        joints[torso_to_hind_upper_right_leg]=-15;
-        joints[hind_right_knee]=-25;
-        break;
-        
-
         case 5:
-        joints[neck_to_torso]=-43;
-        joints[torso_to_front_upper_left_leg]=-15;
-        joints[front_left_knee]=70;
-        joints[torso_to_front_upper_right_leg]=20;
-        joints[front_right_knee]=95;
-        joints[torso_to_hind_upper_left_leg]=25;
-        joints[hind_left_knee]=-55;
-        joints[torso_to_hind_upper_right_leg]=-10;
-        joints[hind_right_knee]=-90;
-        break;
+        joints[neck_to_torso]=-40;
+        joints[torso_to_front_upper_left_leg]=-10;
+        joints[front_left_knee]=5;
+        joints[torso_to_front_upper_right_leg]=-40;
+        joints[front_right_knee]=-5;
+        joints[torso_to_hind_upper_left_leg]=45;
+        joints[hind_left_knee]=-5;
+        joints[torso_to_hind_upper_right_leg]=25;
+        joints[hind_right_knee]=-5;
         
         case 6:
-        joints[neck_to_torso]=-43;
-        joints[torso_to_front_upper_left_leg]=0;
-        joints[front_left_knee]=90;
-        joints[torso_to_front_upper_right_leg]=5;
-        joints[front_right_knee]=0;
-        joints[torso_to_hind_upper_left_leg]=60;
-        joints[hind_left_knee]=-70;
-        joints[torso_to_hind_upper_right_leg]=60;
-        joints[hind_right_knee]=-60;
+        joints[neck_to_torso]=-39;
+        joints[torso_to_front_upper_left_leg]=10;
+        joints[front_left_knee]=0;
+        joints[torso_to_front_upper_right_leg]=-20;
+        joints[front_right_knee]=-5;
+        joints[torso_to_hind_upper_left_leg]=65;
+        joints[hind_left_knee]=-15;
+        joints[torso_to_hind_upper_right_leg]=55;
+        joints[hind_right_knee]=-5;
         break;
+        
         
     }
 }
